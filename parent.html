@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Панель родителя — отправка ссылки</title>
+  <style>
+    :root{
+      --bg:#0b1220; --card:rgba(255,255,255,.08); --line:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92); --muted:rgba(255,255,255,.68);
+      --ok:#22c55e; --bad:#ef4444; --warn:#f59e0b; --primary:#3b82f6; --primary2:#2563eb;
+      --shadow:0 18px 40px rgba(0,0,0,.35); --radius:18px;
+    }
+    @media (prefers-color-scheme: light){
+      :root{--bg:#f5f7fb; --card:#fff; --line:rgba(15,23,42,.12); --text:#0f172a; --muted:#475569; --shadow:0 16px 35px rgba(2,6,23,.12);}
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(1000px 420px at 10% 0%, rgba(59,130,246,.25), transparent 60%),
+        radial-gradient(900px 420px at 90% 10%, rgba(34,197,94,.18), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      padding:18px 14px;
+      display:flex; justify-content:center; align-items:flex-start;
+    }
+    .wrap{width:min(820px,100%)}
+    .head{
+      padding:18px;
+      border-radius:var(--radius);
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(10px);
+      display:flex; gap:12px; align-items:center;
+    }
+    .icon{
+      width:46px;height:46px;border-radius:14px;display:grid;place-items:center;
+      background:linear-gradient(180deg, var(--primary), var(--primary2));
+      color:#fff;font-size:22px; flex:0 0 auto;
+    }
+    h1{margin:0;font-size:18px;line-height:1.2}
+    .sub{margin:4px 0 0;color:var(--muted);font-size:13.5px}
+
+    .card{
+      margin-top:14px;
+      padding:16px;
+      border-radius:var(--radius);
+      background:var(--card);
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+      margin-top:10px;
+    }
+    @media (min-width: 760px){
+      .grid{grid-template-columns: 1fr 1fr;}
+    }
+
+    label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px}
+    input{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      outline:none;
+      font-size:14px;
+    }
+    .hint{margin-top:8px; color:var(--muted); font-size:12.5px; line-height:1.35}
+
+    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    .btn{
+      appearance:none; border:none; cursor:pointer;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 16px;
+      font-weight: 800;
+      display:flex; align-items:center; justify-content:center;
+      gap:10px;
+      transition: transform .08s ease, opacity .2s ease;
+      user-select:none;
+      min-height:52px;
+    }
+    .btn:active{transform: scale(.985)}
+    .btn[disabled]{opacity:.55; cursor:not-allowed}
+    .btn-primary{
+      background: linear-gradient(180deg, var(--primary), var(--primary2));
+      color:white;
+      flex:1 1 260px;
+    }
+    .btn-ghost{
+      background: rgba(0,0,0,.04);
+      color: var(--text);
+      border:1px solid var(--line);
+      flex:1 1 200px;
+    }
+    @media (prefers-color-scheme: dark){
+      .btn-ghost{background: rgba(255,255,255,.06)}
+    }
+
+    .box{
+      margin-top:12px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.04);
+    }
+    @media (prefers-color-scheme: dark){
+      .box{background: rgba(255,255,255,.06)}
+    }
+
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    .tiny{margin-top:10px;color:var(--muted);font-size:12.5px;line-height:1.35}
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="icon">👨‍👩‍👧‍👦</div>
+    <div>
+      <h1>Панель родителя</h1>
+      <p class="sub">Сгенерируй ссылку → отправь ребёнку в WhatsApp → ребёнок нажмёт одну кнопку.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="grid">
+      <div>
+        <label>Имя ребёнка (как будет в сообщении)</label>
+        <input id="fromName" placeholder="Напр: Али" />
+      </div>
+
+      <div>
+        <label>Твой WhatsApp номер (куда ребёнок отправит локацию)</label>
+        <input id="parentPhone" placeholder="Напр: 77011234567" inputmode="numeric" />
+        <div class="hint">Формат: только цифры, без “+” и пробелов.</div>
+      </div>
+
+      <div>
+        <label>Номер ребёнка (кому отправить ссылку) — опционально</label>
+        <input id="childPhone" placeholder="Напр: 7707xxxxxxx" inputmode="numeric" />
+        <div class="hint">Если указать — WhatsApp откроет чат сразу с ребёнком.</div>
+      </div>
+
+      <div>
+        <label>Текст для ребёнка (можно оставить по умолчанию)</label>
+        <input id="note" placeholder="Открой ссылку и нажми кнопку «Отправить местоположение»" />
+      </div>
+    </div>
+
+    <div class="row">
+      <button id="genBtn" class="btn btn-primary">Сгенерировать ссылку</button>
+      <button id="sendBtn" class="btn btn-primary" disabled>Отправить в WhatsApp</button>
+      <button id="copyBtn" class="btn btn-ghost" disabled>Копировать ссылку</button>
+    </div>
+
+    <div class="box">
+      <div style="font-size:13px; color:var(--muted); margin-bottom:6px">Ссылка для ребёнка</div>
+      <div id="childLink" class="mono" style="word-break:break-all; opacity:.95">—</div>
+    </div>
+
+    <div class="tiny">
+      Примечание: WhatsApp не позволяет “отправить автоматически” без участия человека — он откроет экран чата с уже готовым текстом, останется нажать кнопку отправки.
+    </div>
+  </div>
+</div>
+
+<script>
+  const fromName = document.getElementById('fromName');
+  const parentPhone = document.getElementById('parentPhone');
+  const childPhone = document.getElementById('childPhone');
+  const note = document.getElementById('note');
+
+  const genBtn = document.getElementById('genBtn');
+  const sendBtn = document.getElementById('sendBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const childLinkEl = document.getElementById('childLink');
+
+  function digitsOnly(v){ return (v || '').toString().replace(/\D/g,''); }
+
+  function siteBase(){
+    // parent.html лежит в том же месте, что и index.html
+    const here = location.href.split('?')[0];
+    return here.replace(/parent\.html$/i, '');
+  }
+
+  function buildChildLink(){
+    const base = siteBase();
+    const from = encodeURIComponent((fromName.value || 'Ребёнок').trim());
+    const to = encodeURIComponent(digitsOnly(parentPhone.value));
+    // index.html можно и не указывать, но так надёжнее
+    return `${base}index.html?from=${from}&to=${to}`;
+  }
+
+  function buildWhatsAppUrl(message, to){
+    const phone = digitsOnly(to);
+    if (phone) return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    return `https://wa.me/?text=${encodeURIComponent(message)}`;
+  }
+
+  function setEnabled(enabled){
+    sendBtn.disabled = !enabled;
+    copyBtn.disabled = !enabled;
+  }
+
+  genBtn.addEventListener('click', () => {
+    const link = buildChildLink();
+    childLinkEl.textContent = link;
+    setEnabled(true);
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    const link = childLinkEl.textContent;
+    try {
+      await navigator.clipboard.writeText(link);
+      copyBtn.textContent = 'Скопировано ✅';
+      setTimeout(()=> copyBtn.textContent = 'Копировать ссылку', 1200);
+    } catch {
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = link; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      copyBtn.textContent = 'Скопировано ✅';
+      setTimeout(()=> copyBtn.textContent = 'Копировать ссылку', 1200);
+    }
+  });
+
+  sendBtn.addEventListener('click', () => {
+    const link = childLinkEl.textContent;
+    const child = digitsOnly(childPhone.value);
+
+    const msg =
+`${(note.value || 'Открой ссылку и нажми кнопку «Отправить местоположение»').trim()}
+
+Ссылка:
+${link}`;
+
+    // Если childPhone указан — откроется чат сразу с ребёнком
+    const wa = buildWhatsAppUrl(msg, child);
+    window.location.href = wa;
+  });
+
+  // проставим дефолтный текст
+  if (!note.value) note.value = 'Открой ссылку и нажми кнопку «Отправить местоположение»';
+</script>
+</body>
+</html>
