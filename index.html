@@ -92,7 +92,7 @@
       <div class="icon">📍</div>
       <div>
         <h1>Отправить местоположение</h1>
-        <p class="sub">Нажми одну кнопку → разреши геолокацию → откроется WhatsApp с готовым сообщением.</p>
+        <p class="sub">Нажми кнопку → разреши геолокацию → откроется WhatsApp с готовым сообщением.</p>
       </div>
     </div>
 
@@ -107,9 +107,7 @@
       </div>
 
       <div class="tiny">
-        Подсказка: ты можешь задать “от кого” и “кому” прямо в ссылке, например:<br>
-        <code>?from=Али&to=77011234567</code><br>
-        <span style="opacity:.9">to — номер WhatsApp получателя в международном формате (без + и пробелов).</span>
+        Эта страница работает по согласию. Если родитель дал ссылку — просто нажми кнопку.
       </div>
     </div>
   </div>
@@ -123,22 +121,19 @@
     dot.className = 'dot' + (type ? ' ' + type : '');
     statusText.textContent = text;
   }
-
   function fmt(n){ return Number(n).toFixed(6); }
 
   function buildWhatsAppUrl(message, toPhone){
     // Если указан номер — откроется чат сразу с этим номером
-    // Если нет — откроется WhatsApp с выбором чата
     if (toPhone) return `https://wa.me/${toPhone}?text=${encodeURIComponent(message)}`;
+    // Если нет — откроется WhatsApp с выбором чата
     return `https://wa.me/?text=${encodeURIComponent(message)}`;
   }
 
   btn.addEventListener('click', () => {
     const params = new URLSearchParams(location.search);
-    const fromName = params.get('from') || 'Ребёнок';
-    const toPhoneRaw = (params.get('to') || '').trim();
-    // чистим номер: только цифры
-    const toPhone = toPhoneRaw.replace(/\D/g,'');
+    const fromName = (params.get('from') || 'Ребёнок').trim();
+    const toPhone = ((params.get('to') || '').trim()).replace(/\D/g,'');
 
     if (!navigator.geolocation){
       setStatus('bad', 'Геолокация не поддерживается в этом браузере.');
@@ -153,7 +148,6 @@
         const { latitude, longitude, accuracy } = pos.coords;
         const acc = Math.round(accuracy);
         const ts = new Date(pos.timestamp).toLocaleString();
-
         const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
 
         const message =
@@ -166,11 +160,8 @@
 
         setStatus('ok', 'Готово ✅ Открываю WhatsApp…');
 
-        const waUrl = buildWhatsAppUrl(message, toPhone || '');
-        // небольшой таймаут, чтобы текст статуса успел обновиться
+        const waUrl = buildWhatsAppUrl(message, toPhone);
         setTimeout(() => { window.location.href = waUrl; }, 250);
-
-        // на всякий случай включим кнопку обратно через пару секунд
         setTimeout(() => { btn.disabled = false; }, 2000);
       },
       (err) => {
