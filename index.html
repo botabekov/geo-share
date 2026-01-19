@@ -1,180 +1,228 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Отправить местоположение</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Калькулятор FIFO — улучшенный расчёт</title>
   <style>
-    :root{
-      --bg:#0b1220; --card:rgba(255,255,255,.08); --line:rgba(255,255,255,.12);
-      --text:rgba(255,255,255,.92); --muted:rgba(255,255,255,.68);
-      --ok:#22c55e; --bad:#ef4444; --warn:#f59e0b; --primary:#3b82f6; --primary2:#2563eb;
-      --shadow:0 18px 40px rgba(0,0,0,.35); --radius:18px;
-    }
-    @media (prefers-color-scheme: light){
-      :root{--bg:#f5f7fb; --card:#fff; --line:rgba(15,23,42,.12); --text:#0f172a; --muted:#475569; --shadow:0 16px 35px rgba(2,6,23,.12);}
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0; min-height:100vh;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background:
-        radial-gradient(1000px 420px at 10% 0%, rgba(59,130,246,.25), transparent 60%),
-        radial-gradient(900px 420px at 90% 10%, rgba(34,197,94,.18), transparent 55%),
-        var(--bg);
-      color:var(--text);
-      padding:18px 14px;
-      display:flex; justify-content:center; align-items:flex-start;
-    }
-    .wrap{width:min(720px,100%)}
-    .head{
-      padding:18px;
-      border-radius:var(--radius);
-      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
-      border:1px solid var(--line);
-      box-shadow:var(--shadow);
-      backdrop-filter: blur(10px);
-      display:flex; gap:12px; align-items:center;
-    }
-    .icon{
-      width:46px;height:46px;border-radius:14px;display:grid;place-items:center;
-      background:linear-gradient(180deg, var(--primary), var(--primary2));
-      color:#fff;font-size:22px; flex:0 0 auto;
-    }
-    h1{margin:0;font-size:18px;line-height:1.2}
-    .sub{margin:4px 0 0;color:var(--muted);font-size:13.5px}
-    .card{
-      margin-top:14px;
-      padding:16px;
-      border-radius:var(--radius);
-      background:var(--card);
-      border:1px solid var(--line);
-      box-shadow:var(--shadow);
-    }
-    .btn{
-      width:100%;
-      border:none; cursor:pointer;
-      border-radius:16px;
-      padding:16px 16px;
-      font-size:17px;
-      font-weight:800;
-      color:#fff;
-      background:linear-gradient(180deg, var(--primary), var(--primary2));
-      display:flex; align-items:center; justify-content:center; gap:10px;
-      min-height:56px;
-      user-select:none;
-      transition: transform .08s ease, opacity .2s ease;
-    }
-    .btn:active{transform:scale(.985)}
-    .btn[disabled]{opacity:.6; cursor:not-allowed}
-    .status{
-      margin-top:12px;
-      padding:12px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background: rgba(0,0,0,.04);
-      color:var(--muted);
-      font-size:14px;
-      display:flex; gap:10px; align-items:flex-start;
-    }
-    @media (prefers-color-scheme: dark){ .status{background: rgba(255,255,255,.06)} }
-    .dot{width:10px;height:10px;border-radius:999px; margin-top:4px; background:var(--warn); box-shadow:0 0 0 4px rgba(245,158,11,.18)}
-    .dot.ok{background:var(--ok); box-shadow:0 0 0 4px rgba(34,197,94,.18)}
-    .dot.bad{background:var(--bad); box-shadow:0 0 0 4px rgba(239,68,68,.16)}
-    .tiny{margin-top:12px;color:var(--muted);font-size:12.5px;line-height:1.35}
-    code{padding:2px 6px;border-radius:8px;background:rgba(0,0,0,.08);border:1px solid var(--line)}
-    @media (prefers-color-scheme: dark){ code{background:rgba(255,255,255,.06)} }
+    body {font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#f7f8fa; color:#222; margin:0}
+    .container {max-width:420px; margin:20px auto; background:#fff; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,.06); padding:16px}
+    h2 {text-align:center; font-size:18px; margin:0 0 12px}
+    table {width:100%; border-collapse:collapse; font-size:13px; margin:8px 0 12px}
+    th, td {border-bottom:1px solid #eef1f4; padding:6px; text-align:center}
+    .purchase {background:#e9f2ff; color:#0649d1; font-weight:600}
+    .sale {background:#eaffea; color:#0a7a0a; font-weight:600}
+    .transfer {background:#fff5e8; color:#9c6400; font-weight:600}
+    .btn {background:#0066ff; color:#fff; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-size:14px}
+    .btn:active {background:#004bcc}
+    .btn-del {background:#ff5a5a; color:#fff; border:none; border-radius:6px; padding:4px 8px; font-size:12px; cursor:pointer}
+    .btn-del:active {background:#d02727}
+    .result-box {background:#f2f5f9; border-radius:10px; padding:10px; font-size:14px; margin-top:10px}
+    input, select {width:100%; padding:8px; border-radius:8px; border:1px solid #cfd6df; margin-bottom:8px; font-size:14px}
+    .actions {display:flex; gap:8px; margin-top:10px}
+    .actions .btn {flex:1}
+    #details {display:none; background:#eef3f9; border-radius:10px; padding:10px; margin-top:10px; font-size:13px; white-space:pre-line}
+    .muted {color:#667085; font-size:12px}
+    .warn {background:#fff2f0; color:#b42318; border:1px solid #ffccc7; border-radius:8px; padding:8px; margin-top:8px; display:none}
+    #inputBlock.hidden {display:none}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="head">
-      <div class="icon">📍</div>
-      <div>
-        <h1>Отправить местоположение</h1>
-        <p class="sub">Нажми кнопку → разреши геолокацию → откроется WhatsApp с готовым сообщением.</p>
-      </div>
+  <div class="container">
+    <h2>Калькулятор FIFO</h2>
+
+    <table id="operationsTable">
+      <thead>
+        <tr><th>#</th><th>Тип</th><th>Кол-во</th><th>Цена</th><th></th></tr>
+      </thead>
+      <tbody><tr><td colspan="5" class="muted">Нет операций</td></tr></tbody>
+    </table>
+
+    <div id="inputBlock">
+      <select id="type" onchange="togglePriceField()">
+        <option value="Покупка (Приход)">Покупка (Приход)</option>
+        <option value="Продажа (Уход)">Продажа (Уход)</option>
+        <option value="Списание ЦБ (Уход)">Списание ЦБ (Уход)</option>
+      </select>
+      <input type="text" id="qty" placeholder="Количество (целое)" inputmode="decimal" />
+      <input type="text" id="price" placeholder="Цена (точка или запятая)" inputmode="decimal" />
+      <button class="btn" onclick="addOperation()">Добавить операцию</button>
+      <div id="warn" class="warn"></div>
     </div>
 
-    <div class="card">
-      <button id="sendBtn" class="btn">
-        Отправить местоположение <span aria-hidden="true">→</span>
-      </button>
+    <div class="result-box" id="result">Зачисление ЦБ в HF: 0 шт.<br />Средняя цена (FIFO): 0.00 ₸</div>
 
-      <div id="status" class="status">
-        <span id="dot" class="dot"></span>
-        <div id="statusText">Ожидаю нажатия кнопки.</div>
-      </div>
+    <button class="btn" style="width:100%; margin-top:8px; background:#0a8a78" onclick="toggleDetails()">Показать расчёты</button>
+    <div id="details">Расчёты появятся здесь…</div>
 
-      <div class="tiny">
-        Эта страница работает по согласию. Если родитель дал ссылку — просто нажми кнопку.
-      </div>
+    <div class="actions">
+      <button class="btn" style="background:#e5e7eb; color:#111827" onclick="resetAll()">Очистить всё</button>
+      <button class="btn" onclick="saveData()">Сохранить результат</button>
     </div>
   </div>
 
-<script>
-  const btn = document.getElementById('sendBtn');
-  const statusText = document.getElementById('statusText');
-  const dot = document.getElementById('dot');
+  <script>
+    function toNumber(v) {
+      if (typeof v === 'number') return v;
+      if (!v) return NaN;
+      const s = String(v).replace(/\s+/g, '').replace(',', '.');
+      const n = Number(s);
+      return Number.isFinite(n) ? n : NaN;
+    }
+    function round(n, d = 2) {const f = Math.pow(10, d);return Math.round((n + Number.EPSILON) * f) / f;}
 
-  function setStatus(type, text){
-    dot.className = 'dot' + (type ? ' ' + type : '');
-    statusText.textContent = text;
-  }
-  function fmt(n){ return Number(n).toFixed(6); }
+    let operations = [];
+    let calcDetails = '';
 
-  function buildWhatsAppUrl(message, toPhone){
-    // Если указан номер — откроется чат сразу с этим номером
-    if (toPhone) return `https://wa.me/${toPhone}?text=${encodeURIComponent(message)}`;
-    // Если нет — откроется WhatsApp с выбором чата
-    return `https://wa.me/?text=${encodeURIComponent(message)}`;
-  }
-
-  btn.addEventListener('click', () => {
-    const params = new URLSearchParams(location.search);
-    const fromName = (params.get('from') || 'Ребёнок').trim();
-    const toPhone = ((params.get('to') || '').trim()).replace(/\D/g,'');
-
-    if (!navigator.geolocation){
-      setStatus('bad', 'Геолокация не поддерживается в этом браузере.');
-      return;
+    function togglePriceField() {
+      const type = document.getElementById('type').value;
+      const price = document.getElementById('price');
+      price.style.display = type === 'Списание ЦБ (Уход)' ? 'none' : 'block';
     }
 
-    btn.disabled = true;
-    setStatus('', 'Определяем… Разреши доступ к геолокации, если появится запрос.');
+    function showWarn(msg) {
+      const w = document.getElementById('warn');
+      w.textContent = msg;
+      w.style.display = msg ? 'block' : 'none';
+    }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords;
-        const acc = Math.round(accuracy);
-        const ts = new Date(pos.timestamp).toLocaleString();
-        const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+    function addOperation() {
+      try {
+        showWarn('');
+        const type = document.getElementById('type').value;
+        const qty = Math.trunc(toNumber(document.getElementById('qty').value));
+        const priceVal = toNumber(document.getElementById('price').value);
 
-        const message =
-`От кого получили: ${fromName}
-Отправить местоположение ✅
-Координаты: ${fmt(latitude)}, ${fmt(longitude)}
-Точность: ~${acc} м
-Время: ${ts}
-Карта: ${mapsUrl}`;
+        if (!qty || qty <= 0) return showWarn('Введите корректное количество (целое число).');
+        if (type !== 'Списание ЦБ (Уход)' && (!Number.isFinite(priceVal) || priceVal <= 0))
+          return showWarn('Введите корректную цену (> 0).');
 
-        setStatus('ok', 'Готово ✅ Открываю WhatsApp…');
+        operations.push({ type, qty, price: type === 'Списание ЦБ (Уход)' ? null : round(priceVal, 6) });
+        renderTable();
+        calculateFIFO();
 
-        const waUrl = buildWhatsAppUrl(message, toPhone);
-        setTimeout(() => { window.location.href = waUrl; }, 250);
-        setTimeout(() => { btn.disabled = false; }, 2000);
-      },
-      (err) => {
-        let hint = '';
-        if (err.code === 1) hint = 'Доступ запрещён. Разреши геолокацию в браузере.';
-        if (err.code === 2) hint = 'Нет данных. Проверь, включена ли Геолокация и интернет.';
-        if (err.code === 3) hint = 'Таймаут. Попробуй ещё раз или выйди к окну/на улицу.';
-        setStatus('bad', `Ошибка: ${err.message}. ${hint}`);
-        btn.disabled = false;
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
-  });
-</script>
+        if (type === 'Списание ЦБ (Уход)') {
+          document.getElementById('inputBlock').classList.add('hidden');
+        }
+
+        document.getElementById('qty').value = '';
+        document.getElementById('price').value = '';
+        document.getElementById('type').selectedIndex = 0;
+        togglePriceField();
+      } catch (e) {
+        showWarn('Не удалось добавить операцию: ' + e.message);
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.querySelector('#operationsTable tbody');
+      tbody.innerHTML = '';
+      operations.forEach((op, i) => {
+        const tr = document.createElement('tr');
+        tr.className = op.type.includes('Покупка') ? 'purchase' : (op.type.includes('Продажа') ? 'sale' : 'transfer');
+        tr.innerHTML = `<td>${i + 1}</td><td>${op.type}</td><td>${op.qty}</td><td>${op.price ?? '-'}</td><td><button class="btn-del" onclick="deleteRow(${i})">×</button></td>`;
+        tbody.appendChild(tr);
+      });
+      if (!operations.length) tbody.innerHTML = '<tr><td colspan="5" class="muted">Нет операций</td></tr>';
+    }
+
+    function deleteRow(i) {
+      if (i < 0 || i >= operations.length) return;
+      operations.splice(i, 1);
+      renderTable();
+      calculateFIFO();
+      if (!operations.some(op => op.type === 'Списание ЦБ (Уход)')) {
+        document.getElementById('inputBlock').classList.remove('hidden');
+      }
+    }
+
+    function toggleDetails() {
+      const el = document.getElementById('details');
+      el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function calculateFIFO() {
+      try {
+        calcDetails = '';
+        let lots = [];
+        let transferResult = null;
+
+        for (const op of operations) {
+          calcDetails += `Операция: ${op.type}, Кол-во: ${op.qty}, Цена: ${op.price ?? '-'}\n`;
+
+          if (op.type === 'Покупка (Приход)') {
+            lots.push({ qty: op.qty, price: op.price });
+          } else if (op.type === 'Продажа (Уход)') {
+            let remain = op.qty;
+            let sellValue = 0, sellCost = 0;
+            while (remain > 0 && lots.length) {
+              const lot = lots[0];
+              const use = Math.min(remain, lot.qty);
+              sellValue += use * op.price;
+              sellCost += use * lot.price;
+              calcDetails += `  Списано ${use} по ${lot.price} (P/L на ед.: ${round(op.price - lot.price, 6)})\n`;
+              lot.qty -= use;
+              remain -= use;
+              if (lot.qty === 0) lots.shift();
+            }
+            const profit = sellValue - sellCost;
+            calcDetails += `  Себестоимость: ${round(sellCost,2)}, Выручка: ${round(sellValue,2)}, Прибыль/Убыток: ${round(profit,2)}\n`;
+          } else if (op.type === 'Списание ЦБ (Уход)') {
+            let remain = op.qty, value = 0, taken = 0;
+            for (const lot of lots) {
+              if (remain <= 0) break;
+              const use = Math.min(remain, lot.qty);
+              value += use * lot.price;
+              taken += use;
+              calcDetails += `  Списано ${use} по ${lot.price}\n`;
+              lot.qty -= use;
+              remain -= use;
+            }
+            const avgPrice = taken ? round(value / taken, 2) : 0;
+            calcDetails += `  Себестоимость списанных: ${round(value,2)}\n`;
+            transferResult = { qty: op.qty, avgPrice };
+            calcDetails += `\n==> Списание ЦБ (Уход): ${op.qty} шт. Средняя цена (FIFO): ${avgPrice} ₸\n`;
+          }
+
+          const totalQtyNow = lots.reduce((s, l) => s + l.qty, 0);
+          const totalValueNow = lots.reduce((s, l) => s + l.qty * l.price, 0);
+          const avgNow = totalQtyNow ? round(totalValueNow / totalQtyNow, 2) : 0;
+          calcDetails += `  Остаток после операции: ${totalQtyNow} шт. Средняя цена остатка: ${avgNow}\n\n`;
+
+          lots = lots.filter(l => l.qty > 0);
+        }
+
+        const totalQty = lots.reduce((s, l) => s + l.qty, 0);
+        const totalValue = lots.reduce((s, l) => s + l.qty * l.price, 0);
+        const avg = totalQty ? round(totalValue / totalQty, 2) : 0;
+
+        document.getElementById('result').innerHTML = transferResult
+          ? `Списание ЦБ (Уход): ${transferResult.qty} шт.<br/>Средняя цена (FIFO): ${transferResult.avgPrice} ₸`
+          : `Зачисление ЦБ в HF: ${totalQty} шт.<br/>Средняя цена (FIFO): ${avg} ₸`;
+
+        document.getElementById('details').innerText = calcDetails.trim();
+      } catch (e) {
+        showWarn('Ошибка расчёта: ' + e.message);
+      }
+    }
+
+    function resetAll() {
+      operations = [];
+      document.getElementById('details').innerText = '';
+      document.getElementById('warn').style.display = 'none';
+      document.getElementById('inputBlock').classList.remove('hidden');
+      renderTable();
+      document.getElementById('result').innerHTML = 'Зачисление ЦБ в HF: 0 шт.<br/>Средняя цена (FIFO): 0.00 ₸';
+    }
+
+    function saveData() {
+      try {
+        console.log('Сохранено:', JSON.stringify(operations, null, 2));
+        alert('Данные сохранены в консоль.');
+      } catch (e) {
+        showWarn('Не удалось сохранить: ' + e.message);
+      }
+    }
+  </script>
 </body>
 </html>
